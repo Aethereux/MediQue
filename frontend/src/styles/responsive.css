@@ -1,0 +1,62 @@
+/* MediQue.ph — responsive rules. Resize window to flip desktop ↔ mobile. */
+
+/* ---- tablet ---- */
+@media (max-width: 940px) {
+  .hero-grid { grid-template-columns: 1fr !important; gap: 36px !important; }
+  .hero-visual { max-width: 480px; }
+  .feats-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 28px !important; }
+  .spec-grid { grid-template-columns: repeat(4, 1fr) !important; }
+  .solution-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
+  .dash-grid { grid-template-columns: 1fr !important; }
+  .footer-grid { grid-template-columns: 1fr 1fr !important; gap: 28px !important; }
+  .contact-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ---- mobile ---- */
+@media (max-width: 720px) {
+  :root { --nav-h: 60px; }
+  .container { padding: 0 18px !important; }
+
+  /* nav: hide desktop links everywhere on mobile */
+  .nav-links { display: none !important; }
+
+  /* public: show hamburger, hide inline auth buttons */
+  .is-public .nav-hamburger { display: flex !important; }
+  .is-public .nav-auth-btns { display: none !important; }
+
+  /* authed: bottom tab bar + hide avatar name to save room */
+  .is-authed .bottom-tabs { display: block !important; }
+  .avatar-name { display: none !important; }
+
+  /* give app screens room above the bottom tab bar */
+  .is-authed .app-pad { padding-bottom: 78px; }
+
+  .steps-grid { grid-template-columns: 1fr !important; gap: 14px !important; }
+  .feats-grid { grid-template-columns: 1fr !important; gap: 22px !important; }
+  .spec-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .about-grid { grid-template-columns: 1fr !important; }
+  .footer-grid { grid-template-columns: 1fr !important; gap: 26px !important; }
+  .results-grid { grid-template-columns: 1fr !important; }
+  .quick-grid { grid-template-columns: 1fr !important; }
+  .form-2col { grid-template-columns: 1fr !important; }
+  .account-grid { grid-template-columns: 1fr !important; }
+  .review-actions { flex-direction: column-reverse; }
+
+  .hero-cta .btn { flex: 1; }
+  .hero-float { left: auto !important; right: 12px; bottom: -16px !important; width: 220px !important; }
+  .hero-visual { min-height: 320px !important; }
+
+  .profile-head { flex-direction: column; gap: 14px !important; }
+
+  .cta-band { flex-direction: column; align-items: flex-start !important; }
+
+  /* slot grid stays comfortable on phone */
+  .slot-grid { grid-template-columns: repeat(3, 1fr) !important; }
+
+  h1 { letter-spacing: -0.02em; }
+}
+
+@media (max-width: 420px) {
+  .spec-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .hero-float { display: none !important; }
+}

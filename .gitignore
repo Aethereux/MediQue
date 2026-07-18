@@ -1,0 +1,19 @@
+# Python
+backend/.venv/
+__pycache__/
+*.pyc
+
+# Secrets & local data
+backend/.env
+backend/medique.db
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Internal team guide — shared directly, not committed
+MP-GUIDE.md
+
+# OS / editor
+.DS_Store
+*.log
