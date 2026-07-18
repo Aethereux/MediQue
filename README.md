@@ -66,7 +66,3 @@ Production build: `npm run build` (output in `dist/`), typecheck: `npx tsc --noE
 Admins land on `/admin` (day board · bookings · doctors). Extra seed patients (`maria.santos@`, `carlos.mendoza@`, `grace.uy@`, `liza.ferrer@` — all `@email.com`, password `password123`) exist to populate the admin pages.
 
 Useful demo states: **Dr. Ramos** is always fully booked (red panel, booking blocked server-side); booking **Dr. Bautista's** Monday 9:45 AM slot shows "appointment #4 of the day".
-
-## Reference
-
-The design handoff and full API/UI specification live in `../design_handoff_medique/` — `MediQue-Claude-Code-Spec.md` is the source of truth for endpoints, schemas, and business rules.
