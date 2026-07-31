@@ -25,7 +25,7 @@ BOOK_LOCK = threading.Lock()
 
 @router.post("", status_code=201)
 def create_booking(payload: BookingIn, db=Depends(get_db), user=Depends(get_current_user)):
-    # --- validation ladder (outside the lock) ---
+
     doc = db.get(Doctor, payload.doctor_id)
     if doc is None:
         raise HTTPException(404, "Doctor not found.")
@@ -50,7 +50,6 @@ def create_booking(payload: BookingIn, db=Depends(get_db), user=Depends(get_curr
     if not (0 <= payload.slot_index < doc.slot_limit):
         raise HTTPException(422, "Invalid slot index.")
 
-    # --- atomic section ---
     with BOOK_LOCK:
         existing = (
             db.query(Booking)
@@ -97,7 +96,6 @@ def create_booking(payload: BookingIn, db=Depends(get_db), user=Depends(get_curr
 
         db.refresh(booking)
 
-    # --- build response payload ---
     specialty = db.get(Specialty, doc.specialty_id)
     specialty_name = specialty.name if specialty else doc.specialty_id
 
@@ -127,4 +125,51 @@ def create_booking(payload: BookingIn, db=Depends(get_db), user=Depends(get_curr
         "status": booking.status,
         "video_link": video_link,
         "note": note,
+    }
+
+
+@router.get("/mine")
+def my_bookings(db=Depends(get_db), user=Depends(get_current_user)):
+    rows = db.query(Booking).filter(Booking.user_id == user.id).all()
+
+    t = today()
+    changed = False
+    for b in rows:
+        if b.status == "confirmed" and b.date < t:
+            b.status = "completed"
+            changed = True
+    if changed:
+        db.commit()
+
+    def item(b):
+        doc = db.get(Doctor, b.doctor_id)
+        specialty = db.get(Specialty, doc.specialty_id) if doc else None
+        return {
+            "id": b.id,
+            "doctor_id": b.doctor_id,
+            "doctor_name": doc.name if doc else b.doctor_id,
+            "specialty": specialty.name if specialty else (doc.specialty_id if doc else ""),
+            "date_label": date_label(b.date),
+            "time": b.time_label,
+            "mode": b.mode,
+            "room": doc.room if doc else "",
+            "position": b.position,
+            "status": b.status,
+            "color": doc.color if doc else "#0E8C8C",
+        }
+
+    upcoming = sorted(
+        (b for b in rows if b.status == "confirmed" and b.date >= t),
+        key=lambda b: (b.date, b.slot_index),
+    )
+    past = sorted(
+        (b for b in rows if not (b.status == "confirmed" and b.date >= t)),
+        key=lambda b: b.date,
+        reverse=True,
+    )
+
+    return {
+        "upcoming": [item(b) for b in upcoming],
+        "past": [item(b) for b in past],
+        "counts": {"upcoming": len(upcoming), "past": len(past)},
     }
