@@ -65,7 +65,7 @@ def list_doctors(specialty: str = "", q: str = "", db: Session = Depends(get_db)
             specialty_name = specialty_row.name if specialty_row else doc.specialty_id
             if needle in doc.name.lower() or needle in specialty_name.lower():
                 filtered.append(doc)
-            doctors = filtered
+        doctors = filtered
 
     return [doctor_item(db, doc) for doc in doctors]
 
@@ -87,10 +87,10 @@ def get_doctor_availability(doctor_id: str, date: str = "", db: Session = Depend
     try:
         parsed_date = date_cls.fromisoformat(date)
     except ValueError:
-        raise HTTPException(422, "Invalid date format.")
+        raise HTTPException(422, "Invalid date.")
     
     if parsed_date < today():
-        raise HTTPException(422, "Date must be an available date.")
+        raise HTTPException(422, "Date must be today or later.")
         
     limit = doc.slot_limit
     
