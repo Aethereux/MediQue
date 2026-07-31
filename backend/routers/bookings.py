@@ -173,3 +173,25 @@ def my_bookings(db=Depends(get_db), user=Depends(get_current_user)):
         "past": [item(b) for b in past],
         "counts": {"upcoming": len(upcoming), "past": len(past)},
     }
+
+
+@router.post("/{booking_id}/cancel")
+def cancel_booking(booking_id: str, db=Depends(get_db), user=Depends(get_current_user)):
+    booking = db.get(Booking, booking_id)
+    if booking is None:
+        raise HTTPException(404, "Booking not found.")
+
+    if booking.user_id != user.id:
+        raise HTTPException(403, "You can only cancel your own bookings.")
+
+    if booking.status != "confirmed" or booking.date < today():
+        raise HTTPException(409, "This booking can no longer be cancelled.")
+
+    booking.status = "cancelled"
+    db.commit()
+
+    return {
+        "id": booking.id,
+        "status": "cancelled",
+        "message": "Appointment cancelled. You can book again anytime.",
+    }
