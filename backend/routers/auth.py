@@ -41,9 +41,9 @@ def register(body: RegisterIn, db = Depends(get_db)):
     
     # Create the User 
     user = User(
-        full_name=body.full_name,
+        full_name=body.full_name.strip(),
         email=email,
-        mobile=body.mobile,
+        mobile=body.mobile.strip(),
         password_hash=hash_password(body.password)
     )
     
