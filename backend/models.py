@@ -31,6 +31,16 @@ def date_label(d):
 def valid_email(s):
     return bool(EMAIL_RE.match(s or ""))
 
+def first_name_of(name):
+    name_part = (name or "").split()
+    return name_part[0] if name_part else ""
+
+
+def initials_of(name):
+    name_part = (name or "").split()
+    capital = [c for c in name_part if c[0].isupper()]
+    picks = capital if len(capital) >= 2 else name_part
+    return "".join(w[0].upper() for w in picks[:2])
 
 # ---- models (spec §4) ----
 

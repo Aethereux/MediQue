@@ -5,6 +5,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from routers import auth
 import seed
 from database import engine
 from models import Base, today
@@ -40,3 +41,4 @@ def health():
 # Routers are registered here as each machine problem creates them, e.g.:
 #   from routers import auth
 #   app.include_router(auth.router)
+app.include_router(auth.router)
