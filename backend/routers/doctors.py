@@ -1,8 +1,9 @@
+from datetime import date as date_cls
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import Doctor, Specialty, occupied_set, today
+from models import Doctor, Specialty, occupied_set, today, fmt_time
 
 
 router = APIRouter(prefix="/api")
@@ -64,7 +65,7 @@ def list_doctors(specialty: str = "", q: str = "", db: Session = Depends(get_db)
             specialty_name = specialty_row.name if specialty_row else doc.specialty_id
             if needle in doc.name.lower() or needle in specialty_name.lower():
                 filtered.append(doc)
-        doctors = filtered
+            doctors = filtered
 
     return [doctor_item(db, doc) for doc in doctors]
 
@@ -75,3 +76,59 @@ def get_doctor(doctor_id: str, db: Session = Depends(get_db)):
     if doc is None or not doc.is_active:
         raise HTTPException(404, "Doctor not found.")
     return doctor_item(db, doc)
+
+@router.get("/doctors/{doctor_id}/availability")
+def get_doctor_availability(doctor_id: str, date: str = "", db: Session = Depends(get_db)):
+    doc = db.get(Doctor, doctor_id)
+    #validations 
+    if doc is None or not doc.is_active:
+        raise HTTPException(404, "Doctor not found.")
+    
+    try:
+        parsed_date = date_cls.fromisoformat(date)
+    except ValueError:
+        raise HTTPException(422, "Invalid date format.")
+    
+    if parsed_date < today():
+        raise HTTPException(422, "Date must be today.")
+        
+    limit = doc.slot_limit
+    
+    base_response = {
+        "doctor_id": doctor_id,
+        "date": parsed_date.isoformat(),
+        "weekday": parsed_date.strftime("%A"),
+        "limit": limit
+    }
+    
+    if parsed_date.strftime("%a") not in doc.days:
+        return {
+            **base_response,
+            "open": False,
+            "booked": 0,
+            "slots_left": 0,
+            "is_full": False,
+            "slots": []
+        }
+        
+    #active slots
+    occ = occupied_set(db, doc, parsed_date)
+    booked = len(occ)
+    
+    slots = [
+        {
+            "index": i,
+            "time": fmt_time(doc.start_min + i * 15),
+            "booked": i in occ
+        }
+        for i in range(limit)
+    ]
+    
+    return {
+        **base_response,
+        "open": True,
+        "booked": booked,
+        "slots_left": max(limit - booked, 0),
+        "is_full": doc.is_full or booked >= limit,
+        "slots": slots
+    }

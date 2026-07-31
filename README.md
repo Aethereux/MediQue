@@ -52,6 +52,10 @@ rm backend/medique.db
 
 ```bash
 cd backend && ./smoke.sh
+
+-- WINDOWS --
+cd backend
+& "C:\Program Files\Git\bin\bash.exe" smoke.sh
 ```
 
 ## Frontend (app on http://localhost:5173)
