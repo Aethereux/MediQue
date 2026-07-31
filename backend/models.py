@@ -7,6 +7,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 MANILA = ZoneInfo("Asia/Manila")
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+OCCUPYING = ("confirmed", "completed", "no_show")  # cancelled never occupies a slot
 
 
 def now_manila():
@@ -113,17 +114,26 @@ class Booking(Base):
 Index("uq_active_slot", Booking.doctor_id, Booking.date, Booking.slot_index,
       unique=True, sqlite_where=Booking.status != "cancelled")
 
-def occupied_set(db, doctor, date):
+def booked_order(limit):
+    odd = [i for i in range(4, limit) if i % 2]
+    even = [i for i in range(4, limit) if not i % 2]
+    return [0, 1, 2] + odd + even + [3]
 
-    rows = (
-        db.query(Booking.slot_index)
-        .filter(
-            Booking.doctor_id == doctor.id,
-            Booking.date == date,
-            Booking.status != "cancelled",
-        )
-        .all()
-    )
-    occupied = {r[0] for r in rows}
-    occupied |= set(range(doctor.base_booked))
-    return occupied
+
+def real_bookings_by_slot(db, doctor_id, d):
+    rows = (db.query(Booking)
+            .filter(Booking.doctor_id == doctor_id, Booking.date == d,
+                    Booking.status.in_(OCCUPYING)).all())
+    return {b.slot_index: b for b in rows}
+
+
+def occupied_set(db, doctor, d):
+    if doctor.is_full:
+        return set(range(doctor.slot_limit))
+    occ = set(booked_order(doctor.slot_limit)[:doctor.base_booked])
+    occ |= set(real_bookings_by_slot(db, doctor.id, d))
+    return {i for i in occ if 0 <= i < doctor.slot_limit}
+
+
+def position_for(occ, slot_index):
+    return sum(1 for i in occ if i < slot_index) + 1
