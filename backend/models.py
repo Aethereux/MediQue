@@ -137,3 +137,18 @@ def occupied_set(db, doctor, d):
 
 def position_for(occ, slot_index):
     return sum(1 for i in occ if i < slot_index) + 1
+
+def next_ref(db):
+
+    rows = db.query(Booking.id).all()
+    max_n = 412
+    for (bid,) in rows:
+        try:
+            n = int(bid.rsplit("-", 1)[-1])
+            max_n = max(max_n, n)
+        except (ValueError, AttributeError):
+            continue
+    return f"MQ-2026-{max_n + 1:06d}"
+
+def position_for(occ, slot_index):
+    return sum(1 for i in occ if i <= slot_index) + 1
