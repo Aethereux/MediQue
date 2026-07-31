@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 
-from auth import hash_password, make_token
+from auth import get_current_user, hash_password, make_token, verify_password
 from database import get_db
-from models import User, first_name_of, initials_of, valid_email
-from schemas import RegisterIn
+from models import User, compute_age, first_name_of, initials_of, valid_email
+from schemas import LoginIn, RegisterIn
 
 router = APIRouter(prefix="/api/auth")
 
@@ -18,6 +18,12 @@ def user_brief(u):
         "initials": initials_of(u.full_name),
         "role": u.role,
     }
+
+
+def user_full(u):
+    return {**user_brief(u),
+            "birthday": u.birthday.isoformat() if u.birthday else None,
+            "sex": u.sex, "age": compute_age(u.birthday), "address": u.address}
 
 
 @router.post("/register", status_code=201)
@@ -56,3 +62,20 @@ def register(body: RegisterIn, db = Depends(get_db)):
         "access_token": make_token(user.id),
         "token_type": "bearer"
     }
+
+
+@router.post("/login")
+def login(body: LoginIn, db = Depends(get_db)):
+    user = db.query(User).filter(User.email == body.email.strip().lower()).first()
+    if user is None or not verify_password(body.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Incorrect email or password.")
+    return {
+        "user": user_brief(user),
+        "access_token": make_token(user.id),
+        "token_type": "bearer"
+    }
+
+
+@router.get("/me")
+def me(user: User = Depends(get_current_user)):
+    return user_full(user)
