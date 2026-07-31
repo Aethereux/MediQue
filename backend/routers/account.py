@@ -43,7 +43,7 @@ def update_account(
         if bday > today():
             raise HTTPException(422, "Birthday cannot be in the future.")
         
-        user.birthday = payload.birthday
+        user.birthday = bday
 
     if payload.mobile is not None:
         user.mobile = payload.mobile
