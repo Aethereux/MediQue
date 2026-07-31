@@ -112,3 +112,18 @@ class Booking(Base):
 # DB-level backstop: one non-cancelled booking per doctor+date+slot
 Index("uq_active_slot", Booking.doctor_id, Booking.date, Booking.slot_index,
       unique=True, sqlite_where=Booking.status != "cancelled")
+
+def occupied_set(db, doctor, date):
+
+    rows = (
+        db.query(Booking.slot_index)
+        .filter(
+            Booking.doctor_id == doctor.id,
+            Booking.date == date,
+            Booking.status != "cancelled",
+        )
+        .all()
+    )
+    occupied = {r[0] for r in rows}
+    occupied |= set(range(doctor.base_booked))
+    return occupied
