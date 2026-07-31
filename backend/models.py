@@ -9,8 +9,6 @@ MANILA = ZoneInfo("Asia/Manila")
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
-# ---- date/format helpers ----
-
 def now_manila():
     return datetime.now(MANILA).replace(tzinfo=None)
 
@@ -31,6 +29,13 @@ def date_label(d):
 def valid_email(s):
     return bool(EMAIL_RE.match(s or ""))
 
+
+def compute_age(birthday):
+    if not birthday:
+        return None
+    t = today()
+    return t.year - birthday.year - ((t.month, t.day) < (birthday.month, birthday.day))
+
 def first_name_of(name):
     name_part = (name or "").split()
     return name_part[0] if name_part else ""
@@ -42,7 +47,6 @@ def initials_of(name):
     picks = capital if len(capital) >= 2 else name_part
     return "".join(w[0].upper() for w in picks[:2])
 
-# ---- models (spec §4) ----
 
 class Base(DeclarativeBase):
     pass
