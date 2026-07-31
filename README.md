@@ -21,6 +21,12 @@ cd backend
 python3.13 -m venv .venv          # skip if .venv already exists
 ./.venv/bin/pip install -r requirements.txt
 cp .env.example .env              # then set a random SECRET_KEY
+
+--WINDOWS--
+cd backend
+py -3.13 -m venv .venv            
+.\.venv\Scripts\pip install -r requirements.txt
+copy .env.example .env            # then set a random SECRET_KEY
 ```
 
 Run:
@@ -28,6 +34,10 @@ Run:
 ```bash
 cd backend
 ./.venv/bin/uvicorn main:app --reload
+
+--WINDOWS--
+cd backend
+.\.venv\Scripts\uvicorn main:app --reload
 ```
 
 On startup the server creates `medique.db` and seeds it (doctors, specialties, demo users, sample bookings) — only when the file doesn't exist yet. Config lives in `.env` (`SECRET_KEY`, `DATABASE_URL`, `TZ=Asia/Manila`).
