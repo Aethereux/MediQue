@@ -5,7 +5,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from routers import auth, doctors
+from routers import auth, contact, doctors
 import seed
 from database import engine
 from models import Base, today
@@ -43,3 +43,4 @@ def health():
 #   app.include_router(auth.router)
 app.include_router(auth.router)
 app.include_router(doctors.router)
+app.include_router(contact.router)
