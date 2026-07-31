@@ -90,7 +90,7 @@ def get_doctor_availability(doctor_id: str, date: str = "", db: Session = Depend
         raise HTTPException(422, "Invalid date format.")
     
     if parsed_date < today():
-        raise HTTPException(422, "Date must be today.")
+        raise HTTPException(422, "Date must be an available date.")
         
     limit = doc.slot_limit
     
