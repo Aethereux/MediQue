@@ -1,3 +1,4 @@
+"""Contact form (/api/contact) — validate and acknowledge, nothing stored."""
 from fastapi import APIRouter, HTTPException
 
 from models import first_name_of, valid_email
@@ -8,7 +9,6 @@ router = APIRouter(prefix="/api")
 
 @router.post("/contact")
 def contact(body: ContactIn):
-    # deliberate stub: validate + confirm, nothing persisted (spec MP-10)
     if not body.name.strip():
         raise HTTPException(422, "Please enter your name.")
     if not valid_email(body.email.strip()):

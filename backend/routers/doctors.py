@@ -1,3 +1,4 @@
+"""Public doctor directory and day availability (/api/specialties, /api/doctors)."""
 from datetime import date as date_cls
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -80,17 +81,16 @@ def get_doctor(doctor_id: str, db: Session = Depends(get_db)):
 @router.get("/doctors/{doctor_id}/availability")
 def get_doctor_availability(doctor_id: str, date: str = "", db: Session = Depends(get_db)):
     doc = db.get(Doctor, doctor_id)
-    #validations 
     if doc is None or not doc.is_active:
         raise HTTPException(404, "Doctor not found.")
-    
+
     try:
         parsed_date = date_cls.fromisoformat(date)
     except ValueError:
         raise HTTPException(422, "Invalid date.")
-    
+
     if parsed_date < today():
-        raise HTTPException(422, "Date must be set on Available Days.")
+        raise HTTPException(422, "Date must be today or later.")
         
     limit = doc.slot_limit
     
@@ -111,7 +111,6 @@ def get_doctor_availability(doctor_id: str, date: str = "", db: Session = Depend
             "slots": []
         }
         
-    #active slots
     occ = occupied_set(db, doc, parsed_date)
     booked = len(occ)
     

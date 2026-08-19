@@ -7,56 +7,50 @@ Doctor appointment scheduling for Makati Medical Center. Patients find doctors b
 
 ## Prerequisites
 
-- **Node.js 18+** (built with v24)
-- **Python 3.11–3.13** (this repo's venv uses 3.13 — on this machine Homebrew's Python 3.14 has a broken C extension setup, so don't swap it in)
+- **Node.js 18+**
+- **Python 3.11–3.13**
 
 ## Backend (API on http://localhost:8000)
 
-> **Status:** `backend/` is a **starter scaffold** — plumbing, models, seed data, and the smoke-test harness are provided; every endpoint and the core logic are `TODO` stubs the team implements as Machine Problems. See `backend/README.md` for the provided-vs-yours map, `../BACKEND-SPRINT-PLAN.md` for phases and assignments, and `../design_handoff_medique/MediQue-Claude-Code-Spec.md` for the exact API contract. A complete reference solution is archived at `../backend-reference-solution.zip` (QA answer key — verify against it, don't copy from it). Until Phase 1 lands, the frontend runs but its API calls will fail.
-
-First-time setup:
+First-time setup — macOS / Linux:
 
 ```bash
 cd backend
-python3.13 -m venv .venv          # skip if .venv already exists
+python3 -m venv .venv
 ./.venv/bin/pip install -r requirements.txt
 cp .env.example .env              # then set a random SECRET_KEY
+```
 
---WINDOWS--
+First-time setup — Windows (PowerShell):
+
+```powershell
 cd backend
-py -3.13 -m venv .venv            
-.\.venv\Scripts\pip install -r requirements.txt
+py -3.13 -m venv .venv
+.venv\Scripts\pip install -r requirements.txt
 copy .env.example .env            # then set a random SECRET_KEY
 ```
 
 Run:
 
 ```bash
-cd backend
-./.venv/bin/uvicorn main:app --reload
-
---WINDOWS--
-cd backend
-.\.venv\Scripts\uvicorn main:app --reload
+./.venv/bin/uvicorn main:app --reload      # Windows: .venv\Scripts\uvicorn main:app --reload
 ```
 
-On startup the server creates `medique.db` and seeds it (doctors, specialties, demo users, sample bookings) — only when the file doesn't exist yet. Config lives in `.env` (`SECRET_KEY`, `DATABASE_URL`, `TZ=Asia/Manila`).
+On first startup the server creates `medique.db` and seeds it (doctors, specialties, demo users, sample bookings). Config lives in `.env` (`SECRET_KEY`, `DATABASE_URL`, `TZ=Asia/Manila`).
 
-**Reset demo data:** seed dates are anchored to "today" (Manila), so refresh them by stopping the server, deleting the DB, and starting again:
+**Reset demo data:** seed dates are anchored to "today" (Manila time), so refresh them by stopping the server and deleting the DB — it reseeds on the next start:
 
 ```bash
-rm backend/medique.db
+rm backend/medique.db              # Windows: del backend\medique.db
 ```
 
-**Smoke test** (58 checks; needs the server running; mutates data — reset the DB after):
+**Smoke test** — 58 end-to-end checks against a running server (mutates data, so reset the DB after). On Windows, run it from **Git Bash**:
 
 ```bash
 cd backend && ./smoke.sh
-
--- WINDOWS --
-cd backend
-& "C:\Program Files\Git\bin\bash.exe" smoke.sh
 ```
+
+A healthy build passes 58/58.
 
 ## Frontend (app on http://localhost:5173)
 

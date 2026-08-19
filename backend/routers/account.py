@@ -1,3 +1,4 @@
+"""Account settings: partial profile update and password-reset stub (/api/account)."""
 from datetime import date
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -27,7 +28,6 @@ def update_account(
         if not valid_email(em):
             raise HTTPException(422, "Enter a valid email address.")
         
-        # Check if another user already owns this email
         existing_user = db.query(User).filter(User.email == em).first()
         if existing_user and existing_user.id != user.id:
             raise HTTPException(409, "An account with this email already exists.")
@@ -63,5 +63,5 @@ def update_account(
 
 @router.post("/password-reset")
 def password_reset(user: User = Depends(get_current_user)):
-    # This is a stub as per spec; no actual email is sent.
+    # stub — no email actually goes out
     return {"message": "Password reset link sent to your email."}

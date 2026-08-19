@@ -1,3 +1,10 @@
+"""Booking lifecycle: create, list mine, cancel (/api/bookings).
+
+Creation re-checks everything server-side (clinic day, mode, slot free,
+capacity) — never trust what the booking page showed. A lock plus the
+unique index on doctor+date+slot guarantees two rapid requests for the
+same slot end as one 201 and one 409.
+"""
 import threading
 from datetime import date
 

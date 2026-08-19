@@ -1,9 +1,9 @@
-"""Seed data — runs once when the DB is empty. Source of truth: prototype app/data.js.
+"""Demo seed data — runs once, only when the DB is empty.
 
-PROVIDED IN FULL: this is data, not coursework. Note the `position` values are
-precomputed constants (the union rule of Sprint 2's occupied_set/position_for,
-applied at seed time). If you ever change the seed bookings, re-derive them with
-your own slot-math module.
+Booking dates are anchored to "today" in Manila (delete medique.db and restart
+to refresh them). The `position` values are precomputed constants; if you ever
+change the seed bookings, re-derive them with occupied_set/position_for from
+models.py.
 """
 from datetime import date, timedelta
 

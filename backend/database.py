@@ -1,3 +1,9 @@
+"""Database engine, session factory, and .env loading.
+
+Reads backend/.env (SECRET_KEY, DATABASE_URL) without any extra dependency.
+The default SQLite path is resolved relative to this file so the server works
+no matter which directory you start it from.
+"""
 import os
 from pathlib import Path
 

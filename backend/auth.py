@@ -1,3 +1,9 @@
+"""Passwords, JWT tokens, and the auth dependencies.
+
+`get_current_user` is what endpoints depend on to require a login;
+`require_admin` stacks a role check on top of it. Any bad, expired, or
+missing token collapses to the same 401 so callers can't probe for details.
+"""
 import bcrypt
 import jwt
 from datetime import datetime, timedelta, timezone
@@ -38,4 +44,10 @@ def get_current_user(cred: HTTPAuthorizationCredentials = Depends(bearer),
             user = None
     if user is None:
         raise HTTPException(401, "Not authenticated")
+    return user
+
+
+def require_admin(user: User = Depends(get_current_user)) -> User:
+    if user.role != "admin":
+        raise HTTPException(403, "Admin access required.")
     return user

@@ -1,3 +1,4 @@
+"""Register, login, and the current-user endpoint (/api/auth)."""
 from fastapi import APIRouter, Depends, HTTPException
 
 from auth import get_current_user, hash_password, make_token, verify_password
@@ -45,7 +46,7 @@ def register(body: RegisterIn, db = Depends(get_db)):
     if db.query(User).filter(User.email == email).first():
         raise HTTPException(status_code=409, detail="An account with this email already exists.")
     
-    # Create the User 
+    # role is never taken from the client — everyone registers as a patient
     user = User(
         full_name=body.full_name.strip(),
         email=email,

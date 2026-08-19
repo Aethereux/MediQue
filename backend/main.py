@@ -1,3 +1,11 @@
+"""MediQue.ph API — app entry point.
+
+Creates the tables and seeds demo data on first boot, allows the Vite dev
+server through CORS, and wires up the feature routers. Every error response
+is a single human-readable message: {"detail": "..."}.
+
+Run with: uvicorn main:app --reload
+"""
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -5,7 +13,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from routers import account, auth, bookings, contact, doctors
+from routers import account, admin, auth, bookings, contact, doctors
 import seed
 from database import engine
 from models import Base, today
@@ -38,11 +46,9 @@ def health():
             "date": today().isoformat()}
 
 
-# Routers are registered here as each machine problem creates them, e.g.:
-#   from routers import auth
-#   app.include_router(auth.router)
 app.include_router(auth.router)
 app.include_router(doctors.router)
 app.include_router(bookings.router)
 app.include_router(account.router)
 app.include_router(contact.router)
+app.include_router(admin.router)

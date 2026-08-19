@@ -1,3 +1,10 @@
+"""SQLAlchemy models plus the small shared helpers the routers lean on.
+
+Everything time-related runs on Asia/Manila. The slot-occupancy helpers at the
+bottom are the heart of the booking logic: a doctor's day is `slot_limit`
+15-minute slots, and a slot is taken if it's part of the seeded base pattern
+or has a real non-cancelled booking on it.
+"""
 import re
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -37,12 +44,14 @@ def compute_age(birthday):
     t = today()
     return t.year - birthday.year - ((t.month, t.day) < (birthday.month, birthday.day))
 
+
 def first_name_of(name):
     name_part = (name or "").split()
     return name_part[0] if name_part else ""
 
 
 def initials_of(name):
+    # prefer capitalized words: "Juan dela Cruz" -> "JC", not "JD"
     name_part = (name or "").split()
     capital = [c for c in name_part if c[0].isupper()]
     picks = capital if len(capital) >= 2 else name_part
@@ -114,13 +123,20 @@ class Booking(Base):
 Index("uq_active_slot", Booking.doctor_id, Booking.date, Booking.slot_index,
       unique=True, sqlite_where=Booking.status != "cancelled")
 
+
+# ---- slot occupancy ----
+
 def booked_order(limit):
+    # the order slots fill up in the demo data: 0,1,2 first, then the odd
+    # indexes from 5 up, then the even ones from 4 up, and 3 last — so the
+    # 9:45 slot (index 3) is always the last to go
     odd = [i for i in range(4, limit) if i % 2]
     even = [i for i in range(4, limit) if not i % 2]
     return [0, 1, 2] + odd + even + [3]
 
 
 def real_bookings_by_slot(db, doctor_id, d):
+    """Map of slot_index -> Booking for one doctor+date (cancelled excluded)."""
     rows = (db.query(Booking)
             .filter(Booking.doctor_id == doctor_id, Booking.date == d,
                     Booking.status.in_(OCCUPYING)).all())
@@ -128,6 +144,11 @@ def real_bookings_by_slot(db, doctor_id, d):
 
 
 def occupied_set(db, doctor, d):
+    """Which slot indexes are taken for this doctor on this date.
+
+    Union of the doctor's seeded base pattern (`base_booked` slots, in
+    booked_order) and the real bookings in the table.
+    """
     if doctor.is_full:
         return set(range(doctor.slot_limit))
     occ = set(booked_order(doctor.slot_limit)[:doctor.base_booked])
@@ -136,10 +157,12 @@ def occupied_set(db, doctor, d):
 
 
 def position_for(occ, slot_index):
+    """Queue number for a new booking: taken slots before it, plus one."""
     return sum(1 for i in occ if i < slot_index) + 1
 
-def next_ref(db):
 
+def next_ref(db):
+    """Next booking reference, e.g. MQ-2026-000420 (numbering starts at 413)."""
     rows = db.query(Booking.id).all()
     max_n = 412
     for (bid,) in rows:
@@ -150,5 +173,3 @@ def next_ref(db):
             continue
     return f"MQ-2026-{max_n + 1:06d}"
 
-def position_for(occ, slot_index):
-    return sum(1 for i in occ if i <= slot_index) + 1

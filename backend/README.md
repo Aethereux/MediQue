@@ -1,22 +1,23 @@
-# MediQue.ph Back-End — Your Build
+# MediQue.ph Backend
 
-The **setup is already implemented** — the server boots, seeds itself, and answers a health check out of the box. Everything on top of it (every endpoint, the auth/JWT logic, the slot math) is yours to build, machine problem by machine problem. **`../MP-GUIDE.md` is your instruction manual**: start with its Setup Check, then follow your assigned MPs in order. Who does what: `../../BACKEND-SPRINT-PLAN.md`. The formal API contract: `../../design_handoff_medique/MediQue-Claude-Code-Spec.md`.
+FastAPI + SQLAlchemy + SQLite. Serves the whole API for the React frontend: auth, doctor directory, day availability, bookings, account settings, contact, and the admin console. All times run on Asia/Manila; every error response is a single human-readable message in `{"detail": "..."}`.
 
-## Provided (read it, import from it, don't rewrite it)
+## Layout
 
-- `database.py` — engine, sessions, `.env` loading
-- `models.py` — the four SQLAlchemy models (spec §4), date/format helpers, and the `uq_active_slot` unique index
-- `schemas.py` — permissive request bodies (your endpoints do the real validation)
-- `auth.py` — password hashing (you'll add the JWT/identity functions in MP-02/03)
-- `main.py` — app wiring: CORS, create-tables + seed-once on startup, the global error handler, and `GET /api/health`
-- `seed.py` — the clinic's data (never edit)
-- `smoke.sh` — 58 curl checks across all MPs; your scoreboard (never edit). `rm medique.db`, restart, `./smoke.sh` — green means done.
+| File | What it does |
+|---|---|
+| `main.py` | App wiring: CORS, create-tables + seed on first boot, error handler, health check, router registration |
+| `database.py` | Engine, session factory, `.env` loading |
+| `models.py` | The four tables (User, Specialty, Doctor, Booking) plus shared helpers — including the slot-occupancy logic every booking feature uses |
+| `schemas.py` | Permissive request bodies; endpoints do the real validation so errors stay human |
+| `auth.py` | Password hashing (bcrypt), JWT tokens, `get_current_user` / `require_admin` dependencies |
+| `seed.py` | Demo data, inserted once when the DB is empty |
+| `routers/` | One file per feature area: `auth`, `doctors`, `bookings`, `account`, `contact`, `admin` |
+| `smoke.sh` | 58 end-to-end curl checks — the acceptance suite |
 
-## Yours to build (the machine problems)
+## Setup
 
-Everything in `routers/` (registration, login, doctors, availability, bookings, history, cancel, account, contact, the whole admin API), the JWT + `get_current_user` + `require_admin` functions in `auth.py`, and the slot-math and reference-id helpers in `models.py` — each in its MP, in sprint order. One branch + one pull request per MP.
-
-## Setup (each member, once)
+macOS / Linux:
 
 ```bash
 python3 -m venv .venv            # Python 3.11–3.13
@@ -24,4 +25,38 @@ python3 -m venv .venv            # Python 3.11–3.13
 cp .env.example .env             # set a random SECRET_KEY
 ```
 
-Run: `./.venv/bin/uvicorn main:app --reload` → http://localhost:8000. Delete `medique.db` anytime to reseed fresh.
+Windows (PowerShell):
+
+```powershell
+py -3.13 -m venv .venv
+.venv\Scripts\pip install -r requirements.txt
+copy .env.example .env           # set a random SECRET_KEY
+```
+
+## Run
+
+```bash
+./.venv/bin/uvicorn main:app --reload      # Windows: .venv\Scripts\uvicorn main:app --reload
+```
+
+API at http://localhost:8000 (interactive docs at `/docs`). First boot creates and seeds `medique.db`.
+
+## Reset & test
+
+Seed dates anchor to today's date in Manila — delete the DB to reseed fresh:
+
+```bash
+rm medique.db                    # Windows: del medique.db
+```
+
+Smoke test (server must be running; it mutates data, so reset after). On Windows use Git Bash:
+
+```bash
+./smoke.sh                       # expect: passed 58, failed 0
+```
+
+## Notes
+
+- `.env` is gitignored; never commit your `SECRET_KEY`.
+- The `tzdata` package in `requirements.txt` is what makes `Asia/Manila` work on Windows — don't remove it.
+- A slot is "taken" if it's in the doctor's seeded base pattern **or** has a real non-cancelled booking; see the slot-occupancy helpers at the bottom of `models.py` before touching anything booking-related.
